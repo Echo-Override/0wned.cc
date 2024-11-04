@@ -5,43 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Educational Projects</title>
     <link rel="stylesheet" href="styles.css"> <!-- Link to an external CSS file -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&display=swap" rel="stylesheet"> <!-- Google Font -->
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Cormorant Garamond', serif; /* New font */
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #0d0d0d; /* Dark background */
+            color: #8B0000; /* Dark red text */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full height for footer positioning */
         }
         header {
-            background: #35424a;
-            color: #ffffff;
+            background: #1a1a1a; /* Darker header background */
+            color: #8B0000; /* Dark red for header text */
             padding: 10px 0;
             text-align: center;
         }
         nav {
             margin: 20px 0;
+            text-align: center; /* Center the navigation links */
         }
         nav a {
             margin: 0 15px;
-            color: #35424a;
+            color: #8B0000; /* Dark red for links */
             text-decoration: none;
+        }
+        nav a:hover {
+            color: #b22222; /* Slightly brighter dark red on hover */
         }
         main {
             padding: 20px;
-            background: #ffffff;
+            background: #1a1a1a; /* Darker background for main content */
             max-width: 800px;
             margin: auto;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7); /* Darker shadow */
+            flex: 1; /* Allow main to grow and push footer down */
         }
         footer {
             text-align: center;
             padding: 10px 0;
-            background: #35424a;
-            color: #ffffff;
-            position: relative;
-            bottom: 0;
+            background: #1a1a1a; /* Darker footer background */
+            color: #8B0000; /* Dark red for footer text */
             width: 100%;
+            margin-top: 20px; /* Add space between main and footer */
+        }
+        h2, h3 {
+            color: #8B0000; /* Dark red for headings */
         }
     </style>
 </head>
