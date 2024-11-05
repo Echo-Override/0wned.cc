@@ -1,0 +1,53 @@
+/* styles.css */
+
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #0d0d0d; /* Dark, almost black background */
+    text-align: center;
+}
+
+h1 {
+    font-size: 3rem;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #303060, #5d4494, #303060); /* Dark indigo to deep violet gradient */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.5s;
+    text-shadow: 0px 0px 8px rgba(93, 63, 211, 0.5); /* Subtle shadow for a mysterious glow */
+    opacity: 0.85;
+    margin: 5px;
+}
+
+h1:hover {
+    transform: scale(1.08);
+}
+
+p {
+    font-size: 1.5rem;
+    margin: 5px 0;
+    color: #8a8a8a; /* Dark gray for readability */
+}
+
+a {
+    background: linear-gradient(90deg, #5d3fd3, #371f6a, #22154a); /* Deep indigo gradient for links */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+a:hover {
+    background: linear-gradient(90deg, #8b63f6, #6a42b5, #493378); /* Slightly lighter gradient on hover */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
