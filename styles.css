@@ -18,27 +18,28 @@ body {
 h1 {
     font-size: 3rem;
     letter-spacing: 2px;
-    background: linear-gradient(90deg, #303060, #5d4494, #303060); /* Dark indigo to deep violet gradient */
+    background: linear-gradient(90deg, #2e3b4e, #3f4e67, #2e3b4e); /* Cool, deep blue gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    transition: transform 0.5s;
-    text-shadow: 0px 0px 8px rgba(93, 63, 211, 0.5); /* Subtle shadow for a mysterious glow */
+    transition: transform, 1s;
+    text-shadow: 0px 0px 8px rgba(47, 72, 88, 0.5); /* Soft shadow for atmospheric effect */
     opacity: 0.85;
     margin: 5px;
 }
 
 h1:hover {
     transform: scale(1.08);
+    text-shadow: 0px 0px 12px rgba(113, 194, 220, 0.5); /* Subtle teal glow on hover */
 }
 
 p {
     font-size: 1.5rem;
     margin: 5px 0;
-    color: #8a8a8a; /* Dark gray for readability */
+    color: #6b778d; /* Cool, medium gray-blue for readability */
 }
 
 a {
-    background: linear-gradient(90deg, #5d3fd3, #371f6a, #22154a); /* Deep indigo gradient for links */
+    background: linear-gradient(90deg, #354f52, #52796f, #354f52); /* Dark teal gradient for links */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-decoration: none;
@@ -47,7 +48,7 @@ a {
 }
 
 a:hover {
-    background: linear-gradient(90deg, #8b63f6, #6a42b5, #493378); /* Slightly lighter gradient on hover */
+    background: linear-gradient(90deg, #6c9a8b, #89b2a3, #6c9a8b); /* Brighter teal gradient on hover */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
