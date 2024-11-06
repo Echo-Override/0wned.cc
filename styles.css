@@ -4,6 +4,14 @@
 /*@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');*/ /*Poppins placeholder*/
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap');
 
+@media (max-width: 767px) {
+    /* Styles for mobile devices */
+    .container {
+      width: 100%;
+      padding: 10px;
+    }
+  }
+  
 body {
     display: flex;
     flex-direction: column;
