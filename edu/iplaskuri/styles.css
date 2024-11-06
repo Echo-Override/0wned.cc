@@ -1,24 +1,6 @@
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap');
 
-/* Mobile-responsive adjustments */
-@media (max-width: 767px) {
-    /* Styles for mobile devices */
-    .container, .linkcontainer {
-        width: 80%;
-        padding: 10px;
-    }
-    
-    ul {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    li {
-        margin: 5px;
-    }
-}
-
 /* Reset the body's margin and padding */
 body {
     font-family: 'Exo 2', sans-serif;
@@ -47,14 +29,13 @@ h2 {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-top: 10px;
     color: #8a9ba8; /* Light grayish color */
     text-align: center; /* Center the h2 */
 }
 
 p {
     font-size: 1.5rem;
-    margin: 5px 0;
+    margin: 20px;
     color: #8a9ba8;
     text-align: center; /* Center the paragraph text */
 }
@@ -92,7 +73,7 @@ a:hover {
 
 /* Container style */
 .container {
-    max-width: 1000px; /* Limit the width */
+    max-width: max-content; /* Limit the width */
     width: 100%;
     padding: 20px;
     margin: 0 auto; /* Center the container horizontally */
@@ -201,4 +182,81 @@ button:active {
     margin: 15px 0; /* Standardize top and bottom margin */
     text-align: center; /* Center the result text */
     box-shadow: 0 2px 10px rgba(0, 150, 150, 0.2); /* Stylish teal shadow for result boxes */
+}
+
+/* New styles for input section and flex layout */
+.input-section {
+    display: flex;
+    justify-content: space-between; /* Space out the inputs */
+    gap: 20px; /* Add some space between the inputs */
+    margin-bottom: 20px; /* Add space between sections */
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column; /* Arrange label above input */
+    align-items: center; /* Center-align label and input */
+    flex: 1; /* Allow inputs to take equal space */
+}
+
+label {
+    display: block;
+    font-size: 1.1em;
+    color: #8a9ba8; /* Light grayish color for labels */
+    margin-bottom: 5px;
+    text-align: center; /* Center the label text */
+}
+
+/* Mobile-responsive adjustments */
+@media (max-width: 767px) {
+    /* Styles for mobile devices */
+    .container, .linkcontainer {
+        width: 80%;
+        padding: 10px;
+    }
+    
+    ul {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    li {
+        margin: 5px;
+    }
+    
+    .input-section {
+        flex-direction: column; /* Stack inputs vertically on small screens */
+        align-items: stretch; /* Make sure inputs stretch to full width */
+    }
+
+    .input-group {
+        flex: none; /* Prevent input groups from stretching */
+        width: 100%; /* Allow the input group to take full width */
+    }
+
+    input[type="text"] {
+        max-width: 100%; /* Allow inputs to take full width on small screens */
+    }
+}
+
+/*Extra styling for subnet checker!*/
+
+/* General styling for the result messages */
+.result p {
+    font-size: 16px;  /* Set the font size */
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Success message styling */
+.success-message {
+    background-color: #4CAF50;  /* Green background */
+    color: white;
+}
+
+/* Error message styling */
+.error-message {
+    background-color: #f44336;  /* Red background */
+    color: white;
 }

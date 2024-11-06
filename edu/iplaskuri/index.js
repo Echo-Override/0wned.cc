@@ -10,13 +10,15 @@ function loadContent(page) {
         })
         .then(html => {
             mainContent.innerHTML = html;
-            // Dynamically load any additional JS file required by the calculator page
+            // Dynamically load the corresponding JS script for each page
             if (page === 'ipv4_to_binary.html') {
                 loadScript('ipv4_converter.js');
             } else if (page === 'eight_bit_converter.html') {
                 loadScript('eight_bit_converter.js');
             } else if (page === 'binary_to_decimal.html') {
                 loadScript('binary_to_decimal.js');
+            } else if (page === 'subnet_check.html') {
+                loadScript('subnet_check.js');  // Add this line to load subnet_check.js
             }
         })
         .catch(error => {

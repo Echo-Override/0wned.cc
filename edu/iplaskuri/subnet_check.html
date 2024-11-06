@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aliverkon tarkistus</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Aliverkon tarkistus</h2>
+        <p>Syötä IPv4-osoitteet ja aliverkon maski, ja paina "Tarkista" nähdäksesi, ovatko ne samassa aliverkossa.</p>
+
+        <!-- Grouping all inputs in the same row -->
+        <section class="input-section">
+            <div class="input-group">
+                <label for="1stIPv4">IPv4-Osoite 1:</label>
+                <input type="text" id="1stIPv4" placeholder="Syötä IPv4-Osoite 1">
+            </div>
+            <div class="input-group">
+                <label for="2ndIPv4">IPv4-Osoite 2:</label>
+                <input type="text" id="2ndIPv4" placeholder="Syötä IPv4-Osoite 2">
+            </div>
+            <div class="input-group">
+                <label for="subnetMask">Aliverkon Maski:</label>
+                <input type="text" id="subnetMask" placeholder="Syötä aliverkon maski">
+            </div>
+        </section>
+
+        <!-- Button to trigger subnet check -->
+        <section class="button-section">
+            <button onclick="checkSubnet()">Tarkista</button>
+        </section>
+
+        <!-- Result section -->
+        <section>
+            <div class="result" id="subnetResult"></div>
+        </section>
+    </div>
+
+    <!-- Link the JS script to the HTML file -->
+    <script src="subnet_check.js"></script>
+</body>
+</html>
