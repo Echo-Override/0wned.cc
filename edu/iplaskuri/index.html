@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP-työkalut</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="linkcontainer">
+        <h1>Työkalut IP-osoitetehtäviin</h1>
+            <ul>
+                <li><a href="#" onclick="loadContent('ipv4_to_binary.html')">IPv4 Binäärimuunnin</a></li>
+                <li><a href="#" onclick="loadContent('eight_bit_converter.html')">8-bittinen Numeromuunnin</a></li>
+                <li><a href="#" onclick="loadContent('binary_to_decimal.html')">Binääristä Desimaaliksi</a></li>
+            </ul>
+    </div>
+    <!-- Main content area where the selected calculator will load -->
+    <div id="mainContent" class="container"></div>
+    <!-- JavaScript to load content -->
+    <script src="index.js"></script>
+</body>
+</html>

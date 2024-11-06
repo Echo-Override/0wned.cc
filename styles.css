@@ -42,6 +42,19 @@ h1:hover {
     text-shadow: 0px 0px 12px rgba(113, 194, 220, 0.5);    /* Subtle teal glow on hover */
 }
 
+h2 {
+    font-size: 3rem;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #2e3b4e, #3f4e67, #2e3b4e); /* Cool, deep blue gradient */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 0px 5px rgba(47, 72, 88, 0.5); /* Soft shadow for atmospheric effect */
+    opacity: 0.85;
+    margin: 5px;
+}
+
+
 p {
     font-size: 1.5rem;
     margin: 5px 0;
