@@ -1,0 +1,135 @@
+/* General styles */
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    color: #333;
+    animation: backgroundChange 10s infinite;
+}
+
+@keyframes backgroundChange {
+    0% { background: #ff9a9e; }
+    25% { background: #fad0c4; }
+    50% { background: #a1c4fd; }
+    75% { background: #c2e9fb; }
+    100% { background: #ff9a9e; }
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    margin-bottom: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    font-size: 3em;
+    color: #ff6f61;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.rainbow-text {
+    background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow 3s linear infinite;
+}
+
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+p {
+    font-size: 1.2em;
+}
+
+#color-picker {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+#color-picker input {
+    margin-right: 10px;
+}
+
+#color-picker button {
+    padding: 10px 20px;
+    background: #ff6f61;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+#color-picker button:hover {
+    background: #ff3b2f;
+    transform: scale(1.1);
+}
+
+#color-display {
+    text-align: center;
+}
+
+#color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 20px;
+}
+
+.color-box {
+    width: 100%;
+    height: 150px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.color-box:hover {
+    transform: scale(1.1);
+}
+
+#fun-section {
+    text-align: center;
+    margin-top: 40px;
+}
+
+#fun-section button {
+    padding: 15px 30px;
+    margin: 10px;
+    border: none;
+    border-radius: 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#rainbow-button {
+    background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+    color: white;
+}
+
+#disco-button {
+    background: black;
+    color: white;
+}
+
+#fun-section button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    margin-top: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
