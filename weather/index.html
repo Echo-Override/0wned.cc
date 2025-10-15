@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Weather App</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the weather background and subtle shadow */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #74a0e7 0%, #4667a4 100%);
+            min-height: 100vh;
+        }
+        .card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        /* Custom animation for loading spinner */
+        .spinner {
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div id="app" class="w-full max-w-md">
+        <!-- Main Weather Card -->
+        <div class="card bg-white p-6 md:p-8 rounded-xl space-y-6">
+            <h1 class="text-3xl font-extrabold text-gray-800 text-center">
+                Secure Weather Finder
+            </h1>
+            <p class="text-sm text-gray-500 text-center">
+                Uses your Cloud Function Proxy for API Key Security.
+            </p>
+
+            <!-- Input Form -->
+            <form id="weather-form" class="flex flex-col sm:flex-row gap-3">
+                <input
+                    type="text"
+                    id="city-input"
+                    placeholder="Enter City Name (e.g., London)"
+                    required
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                >
+                <button
+                    type="submit"
+                    id="fetch-button"
+                    class="bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-150 flex-shrink-0"
+                >
+                    Get Weather
+                </button>
+            </form>
+
+            <!-- Result Display Area -->
+            <div id="result-container" class="space-y-4">
+                <div id="loading-indicator" class="hidden flex justify-center items-center py-4">
+                    <div class="spinner w-8 h-8 border-4 border-gray-200 rounded-full"></div>
+                </div>
+                
+                <div id="weather-display" class="hidden bg-gray-50 p-4 rounded-xl text-center border border-gray-200">
+                    <h2 id="city-name" class="text-2xl font-bold text-gray-800 mb-1"></h2>
+                    <p id="description" class="text-lg text-gray-600 capitalize"></p>
+                    <p id="temperature" class="text-6xl font-extrabold text-blue-600 mt-2"></p>
+                    <p id="details" class="text-sm text-gray-500 mt-2"></p>
+                </div>
+
+                <div id="error-message" class="hidden bg-red-100 p-4 rounded-lg border border-red-300 text-red-700 text-sm">
+                    <!-- Error messages will be inserted here -->
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // *** This URL has been updated with your deployed service path. ***
+        const PROXY_URL = 'https://weather-proxy-165186534585.europe-north1.run.app/weatherProxy'; 
+        
+        const form = document.getElementById('weather-form');
+        const cityInput = document.getElementById('city-input');
+        const fetchButton = document.getElementById('fetch-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const weatherDisplay = document.getElementById('weather-display');
+        const errorMessage = document.getElementById('error-message');
+
+        const cityNameEl = document.getElementById('city-name');
+        const descriptionEl = document.getElementById('description');
+        const temperatureEl = document.getElementById('temperature');
+        const detailsEl = document.getElementById('details');
+
+        /**
+         * Clears all display areas (loading, weather, error).
+         */
+        function resetDisplay() {
+            loadingIndicator.classList.add('hidden');
+            weatherDisplay.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            errorMessage.innerHTML = '';
+        }
+
+        /**
+         * Shows the error message.
+         * @param {string} message The error message to display.
+         */
+        function showError(message) {
+            resetDisplay();
+            errorMessage.innerHTML = `<span class="font-bold">Error:</span> ${message}`;
+            errorMessage.classList.remove('hidden');
+        }
+
+        /**
+         * Handles the form submission to fetch weather data.
+         * @param {Event} event The form submission event.
+         */
+        async function fetchWeather(event) {
+            event.preventDefault();
+            resetDisplay();
+            
+            const city = cityInput.value.trim();
+            if (!city) {
+                showError('Please enter a city name.');
+                return;
+            }
+            
+            // Check 1: Ensure the placeholder URL has been replaced (redundant now, but good practice)
+            if (PROXY_URL.includes('YOUR_FUNCTION_URL_HERE')) {
+                showError('The PROXY_URL constant is still set to the placeholder. Please check the code.');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            fetchButton.disabled = true;
+            fetchButton.textContent = 'Fetching...';
+
+            try {
+                // Ensure the PROXY_URL doesn't end in a slash before adding query
+                const base = PROXY_URL.endsWith('/') ? PROXY_URL.slice(0, -1) : PROXY_URL;
+                // Construct the full URL with the city query parameter
+                const url = `${base}?city=${encodeURIComponent(city)}`;
+                
+                // ADDED: Log the constructed URL for debugging purposes
+                console.log('Attempting to fetch from URL:', url);
+
+                const response = await fetch(url);
+                
+                // If we get an HTTP error status (like 500, 503) that the server couldn't JSON-ify,
+                // we assume it crashed before setting headers properly.
+                if (!response.ok && response.status >= 500) {
+                    throw new Error(`Server returned HTTP ${response.status}. Check Cloud Run logs for 'GCP_PROJECT' or Secret Manager crash.`);
+                }
+
+                if (!response.ok && response.status === 404) {
+                    throw new Error('Endpoint not found. Check the PROXY_URL path, especially the final handler name (/weatherProxy).');
+                }
+
+                // Try to parse JSON even on non-200 responses if status is < 500
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // This handles errors returned by your proxy (e.g., 400 from OpenWeatherMap)
+                    const errorDetail = data.message || data.error || 'Unknown proxy error.';
+                    showError(`API Error for ${city}: ${errorDetail}`);
+                    return;
+                }
+
+                // Display successful weather data
+                cityNameEl.textContent = `${data.name}, ${data.sys.country}`;
+                descriptionEl.textContent = data.weather[0].description;
+                temperatureEl.innerHTML = `${Math.round(data.main.temp)}&deg;C`;
+                detailsEl.textContent = `Humidity: ${data.main.humidity}% | Wind: ${data.wind.speed} m/s`;
+                
+                weatherDisplay.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Fetch operation failed:', error);
+                // UPDATED: More specific error message and instructions to reflect the environment variable issue
+                showError(`Connection failed: ${error.message}. Please check your Cloud Run environment variable: **GCP_PROJECT** must be set to **vscode-funsies** and the service must be redeployed.`);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+                fetchButton.disabled = false;
+                fetchButton.textContent = 'Get Weather';
+            }
+        }
+
+        // Attach event listener
+        form.addEventListener('submit', fetchWeather);
+
+    </script>
+</body>
+</html>
