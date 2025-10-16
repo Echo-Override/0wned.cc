@@ -3,10 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Black Hole of The Internet</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Silhouette of Reverie</title>
+    <!-- Load Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for the speaker icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* --- Ensure HTML and Body use full size of the viewport --- */
+        html {
+            height: 100%;
+        }
+        
+        /* --- Subtle Background Color Animation (Deep Dark Void) --- */
+        @keyframes subtle-color-shift {
+            0% { background-color: #000000; }
+            25% { background-color: #0C0618; } 
+            50% { background-color: #040C18; } 
+            75% { background-color: #021218; } 
+            100% { background-color: #000000; }
+        }
+
+        body {
+            height: 100vh; 
+            width: 100%;
+            min-height: 100vh;
+            
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; 
+            animation: subtle-color-shift 60s infinite alternate; 
+            overflow: hidden;
+            cursor: default;
+            position: relative; 
+        }
+
+        /* --- Animations for Stars --- */
+        @keyframes star-breath {
+            0% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 0.2; }
+        }
+        @keyframes star-flash {
+            0% { opacity: 0; }
+            10% { opacity: 1; filter: brightness(4); }
+            100% { opacity: 0; filter: brightness(1); }
+        }
+        
+        /* --- Star Flight Animation (Rapid movement and fade) --- */
+        @keyframes star-flight {
+            /* Flight animation starts from the star's current translated position (0,0) */
+            0% { transform: translate(var(--start-x), var(--start-y)) scale(1); opacity: 1; }
+            100% { transform: translate(var(--flight-x), var(--flight-y)) scale(0.1); opacity: 0; }
+        }
+
+        /* --- Layout & Core --- */
+        #void-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- Starfield Styles --- */
+        #star-field {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            perspective: 1000px; 
+        }
+        
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            
+            /* The anchor point is top-left (0,0) of the container */
+            transition: opacity 5s linear; 
+            will-change: opacity, transform;
+        }
+        .star-breathing {
+            animation: star-breath var(--animation-duration) ease-in-out infinite;
+            filter: brightness(1.2);
+        }
+        .star-flashing {
+            animation: star-flash 1.5s ease-out forwards;
+        }
+        /* Style for the new flight effect */
+        .star-flight {
+            animation: star-flight var(--flight-duration) linear forwards;
+            z-index: 10; 
+            /* Enhanced glow to make the streaks visible */
+            box-shadow: 0 0 2px 2px rgba(255, 255, 255, 0.75); 
+        }
+        
+        /* --- Parallax Depth Z-Index Layers --- */
+        /* Data-depth is still used here for CSS styling, but not JS logic */
+        .star[data-depth="1"] { z-index: 7; } /* Closest */
+        .star[data-depth="2"] { z-index: 6; } /* Middle */
+        .star[data-depth="3"] { z-index: 5; } /* Farthest */
+
+
+        /* --- Splash Screen and Toggle Icon Styles --- */
+        #splash-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            transition: opacity 2.5s ease-out; 
+            pointer-events: none; 
+        }
+        
+        #splash-icon {
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%) scale(1); 
+            
+            font-size: 6rem;
+            color: #ffffff;
+            animation: pulse 2s infinite;
+            z-index: 1001; 
+            cursor: pointer;
+            
+            /* The transition was too generic ('all 3s'), making the fade-out slow. 
+               We now specify 3s for the movement (top, left, transform) 
+               but only 1s for the opacity to make the icon fade quickly. */
+            transition: transform 3s ease-in-out, top 3s ease-in-out, left 3s ease-in-out, opacity 1s ease-out; 
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1.0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+        }
+        
+        /* Hover state for the transformed splash icon in the corner */
+        .corner-toggle-hover:hover {
+            opacity: 1.0 !important;
+        }
+    </style>
 </head>
-<body>
-    <h1>Embrace the Unknown</h1>
+<body class="">
+
+    <!-- Audio Element -->
+    <audio id="ambient-audio" loop>
+        <!-- NOTE: The music file 'relaxing-ambient-music.mp3' is local to your environment and will not play here. -->
+        <source src="relaxing-ambient-music.mp3" type="audio/mp3">
+    </audio>
+
+    <div id="void-container">
+        <div id="star-field"></div>
+    </div>
+
+    <!-- Black Screen Overlay (Fades out to reveal void) -->
+    <div id="splash-screen"></div>
+
+    <!-- Center Icon (Start button for music and lights) -->
+    <i id="splash-icon" class="fas fa-volume-up"></i>
+
+    <script>
+        // --- Configuration ---
+        const REFERENCE_MOBILE_AREA = 300000; 
+        const REFERENCE_STAR_COUNT = 300; 
+        const DENSITY_PER_PIXEL = REFERENCE_STAR_COUNT / REFERENCE_MOBILE_AREA; 
+        
+        const BREATHING_STAR_RATIO = 0.10; 
+        const MAX_STAR_COUNT = 2500; 
+        const MIN_STAR_COUNT = 150; 
+
+        const DRIFT_SPEED = 0.0015; 
+        const TWINKLE_INTERVAL = 10000; 
+        const FLASH_CHANCE = 0.08; 
+        
+        const FLIGHT_CHANCE = 0.08; 
+        
+        const TRANSITION_TIME = 3000; // 3 seconds for the icon to move
+        const POST_TRANSITION_DELAY = 250; // Extra buffer after CSS transition finishes
+        
+        // Parallax Sensitivity (subtle)
+        const PARALLAX_SENSITIVITY = 8; 
+
+        // --- Global Elements and State ---
+        const starField = document.getElementById('star-field');
+        const ambientAudio = document.getElementById('ambient-audio');
+        const splashIcon = document.getElementById('splash-icon'); 
+        
+        // ** PERFORMANCE IMPROVEMENT: Store star data in JS objects, not the DOM. **
+        let starObjects = []; // [{ element: div, x: number, y: number, depth: number, isBreathing: boolean }, ...]
+        let breathingStars = []; // References to the starObjects that are breathing
+
+        let isAudioPlaying = false;
+        
+        // State for the animation loop
+        let animationFrameId = null; 
+        let lastTime = 0; 
+        let parallaxOffsetX = 0; 
+        let parallaxOffsetY = 0; 
+
+        // --- Dynamic Star Count Calculation ---
+        function calculateDynamicStarCounts() {
+            const screenArea = window.innerWidth * window.innerHeight;
+            
+            let totalStars = Math.floor(screenArea * DENSITY_PER_PIXEL);
+            totalStars = Math.min(MAX_STAR_COUNT, Math.max(MIN_STAR_COUNT, totalStars));
+            
+            const breathingStarsCount = Math.floor(totalStars * BREATHING_STAR_RATIO);
+            
+            return { totalStars, breathingStarsCount };
+        }
+
+        // --- 1. Starfield Generation ---
+        function createStars() {
+            const counts = calculateDynamicStarCounts();
+            const starCount = counts.totalStars;
+            const breathingStarCount = counts.breathingStarsCount;
+            
+            starField.innerHTML = ''; 
+            starObjects = [];
+            breathingStars = [];
+            
+            const halfWidth = window.innerWidth / 2;
+            const halfHeight = window.innerHeight / 2;
+
+            for (let i = 0; i < starCount; i++) {
+                const starElement = document.createElement('div');
+                starElement.className = 'star';
+                
+                const isBreathing = i < breathingStarCount;
+                
+                // Increased the base size of non-breathing stars from 0.5 to 0.8
+                const size = isBreathing ? (Math.random() * 2 + 1.2) : (Math.random() * 1 + 0.8);
+                
+                const depth = Math.floor(Math.random() * 3) + 1; 
+                
+                // Set size and depth for styling
+                starElement.style.width = starElement.style.height = `${size}px`;
+                starElement.dataset.depth = depth; 
+
+                // Store initial position in PIXELS relative to the CENTER (0,0) for PHYSICS
+                const initialStarPhysicsX = (Math.random() * window.innerWidth) - halfWidth;
+                const initialStarPhysicsY = (Math.random() * window.innerHeight) - halfHeight;
+
+                // ** PERFORMANCE IMPROVEMENT: Create the JS object store **
+                const starData = {
+                    element: starElement,
+                    x: initialStarPhysicsX,
+                    y: initialStarPhysicsY,
+                    depth: depth,
+                    isBreathing: isBreathing
+                };
+                starObjects.push(starData);
+
+                // Convert center-relative physics position to top-left-relative screen position for initial display.
+                const topLeftX = initialStarPhysicsX + halfWidth; 
+                const topLeftY = initialStarPhysicsY + halfHeight; 
+
+                // Set initial transform (GPU-accelerated)
+                starElement.style.transform = `translate(${topLeftX}px, ${topLeftY}px)`;
+
+
+                if (isBreathing) {
+                    starElement.classList.add('star-breathing');
+                    starElement.style.setProperty('--animation-duration', `${Math.random() * 10 + 10}s`);
+                    breathingStars.push(starData);
+                } else {
+                    // Start non-breathing stars with low/zero opacity and let the twinkle effect fade them in
+                    starElement.style.opacity = Math.random() < 0.9 ? 0 : Math.random() * 0.2;
+                }
+                
+                // Color Tinting
+                const tintRoll = Math.random();
+                if (tintRoll < 0.1) {
+                    starElement.style.backgroundColor = '#B3D9FF'; 
+                } else if (tintRoll < 0.2) {
+                    starElement.style.backgroundColor = '#CCE5FF'; 
+                } 
+
+                starField.appendChild(starElement);
+            }
+        }
+
+        // --- 2. Twinkle, Flash, and Flight Effects (Non-Physics Loop) ---
+        function applyStarEffects() {
+            starObjects.forEach(star => {
+                if (!star.isBreathing && Math.random() < 0.15) {
+                    // Twinkle/fade effect for non-breathing stars
+                    const newOpacity = Math.random() < 0.3 ? 0 : Math.random() * 0.1 + 0.1;
+                    star.element.style.opacity = newOpacity;
+                }
+            });
+            
+            // --- Star Flight Logic ---
+            if (Math.random() < FLIGHT_CHANCE) {
+                const flyingStar = starObjects[Math.floor(Math.random() * starObjects.length)];
+                const element = flyingStar.element;
+                
+                // Only initiate flight if the star is not currently flying
+                if (!element.classList.contains('star-flight')) {
+                    // Duration in seconds
+                    const duration = Math.random() * 2 + 2;
+                    // Length in pixels
+                    const xDistance = (Math.random() * 100 + 100) * (Math.random() > 0.5 ? 1 : -1);
+                    const yDistance = (Math.random() * 100 + 100) * (Math.random() > 0.5 ? 1 : -1);
+
+                    const halfWidth = window.innerWidth / 2;
+                    const halfHeight = window.innerHeight / 2;
+
+                    // Calculate current position (Physics + Screen Center + Parallax)
+                    const currentStarX = flyingStar.x + halfWidth + (parallaxOffsetX / flyingStar.depth);
+                    const currentStarY = flyingStar.y + halfHeight + (parallaxOffsetY / flyingStar.depth);
+
+                    element.classList.add('star-flight');
+                    element.style.setProperty('--flight-duration', `${duration}s`);
+                    // Set CSS variables for the animation to use the current calculated screen position
+                    element.style.setProperty('--start-x', `${currentStarX}px`); 
+                    element.style.setProperty('--start-y', `${currentStarY}px`);
+                    element.style.setProperty('--flight-x', `${currentStarX + xDistance}px`); 
+                    element.style.setProperty('--flight-y', `${currentStarY + yDistance}px`);
+                    
+                    // Mark the star as flying so gameLoop skips it
+                    flyingStar.isFlying = true; 
+                    
+                    setTimeout(() => {
+                        element.classList.remove('star-flight');
+                        flyingStar.isFlying = false;
+
+                        // Re-apply the static position after the flight animation finishes
+                        const parallaxX_D = parallaxOffsetX / flyingStar.depth;
+                        const parallaxY_D = parallaxOffsetY / flyingStar.depth;
+                        const totalX = flyingStar.x + halfWidth + parallaxX_D;
+                        const totalY = flyingStar.y + halfHeight + parallaxY_D;
+                        
+                        element.style.transform = `translate(${totalX}px, ${totalY}px)`;
+                        
+                        // Restore base opacity
+                        if (flyingStar.isBreathing) {
+                             element.style.opacity = '0.2';
+                        } else {
+                             element.style.opacity = '0';
+                        }
+                    }, duration * 1000);
+                }
+            }
+
+            // --- Star Flash Logic (Runs regardless of flight) ---
+            for (const star of starObjects) {
+                const element = star.element;
+
+                // Only flash if the star is not flying and not currently flashing
+                if (Math.random() < FLASH_CHANCE && 
+                    !element.classList.contains('star-flight') && 
+                    !element.classList.contains('star-flashing')) 
+                {
+                    element.classList.add('star-flashing');
+                    
+                    setTimeout(() => {
+                        element.classList.remove('star-flashing');
+                        // Reset opacity after flash
+                        if (star.isBreathing) {
+                            element.style.opacity = '0.2';
+                        } else {
+                            element.style.opacity = '0';
+                        }
+                    }, 1500);
+                    
+                    // Only flash one star per interval to avoid sensory overload
+                    break; 
+                }
+            }
+
+            // Re-schedule the next check
+            setTimeout(applyStarEffects, TWINKLE_INTERVAL);
+        }
+
+        // --- 3. Parallax Movement Handler (Stores offsets) ---
+        function handleParallax(e) {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            const xNorm = (e.clientX - centerX) / centerX; 
+            const yNorm = (e.clientY - centerY) / centerY; 
+
+            // Store the required parallax offset in pixels (based on sensitivity)
+            parallaxOffsetX = -xNorm * PARALLAX_SENSITIVITY; 
+            parallaxOffsetY = -yNorm * PARALLAX_SENSITIVITY;
+        }
+        
+        // --- 4. Constant Movement Loop (Frame-Rate Independent and GPU-Accelerated) ---
+        function gameLoop(currentTime) {
+            if (lastTime === 0) lastTime = currentTime; 
+            
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime; 
+            
+            const halfWidth = window.innerWidth / 2;
+            const halfHeight = window.innerHeight / 2;
+            const wrapXLimit = halfWidth * 1.05;
+            const wrapYLimit = halfHeight * 1.05;
+
+            // ** PERFORMANCE IMPROVEMENT: Iterate over JS array, not the DOM **
+            starObjects.forEach(star => {
+                // Skip if star is currently mid-flight animation
+                if (star.isFlying) return;
+
+                // Get current PHYSICS base position (in Pixels relative to CENTER)
+                let starX = star.x;
+                let starY = star.y;
+                
+                const depthFactor = (4 - star.depth); // Closer stars (depth 1) move faster
+                
+                // --- 1. Drift Calculation (Outward Movement) ---
+                const dirX = starX; 
+                const dirY = starY; 
+                
+                const distance = Math.sqrt(dirX * dirX + dirY * dirY);
+                
+                const driftAmount = DRIFT_SPEED * depthFactor * deltaTime; 
+                
+                const normX = distance > 0 ? dirX / distance : 0;
+                const normY = distance > 0 ? dirY / distance : 0;
+                
+                starX += normX * driftAmount;
+                starY += normY * driftAmount;
+
+                // --- 2. Wrapping Logic (Reset when star reaches edge) ---
+                if (Math.abs(starX) > wrapXLimit || Math.abs(starY) > wrapYLimit) {
+                    const resetRadius = Math.min(halfWidth, halfHeight) * 0.1;
+                    const angle = Math.random() * Math.PI * 2;
+                    starX = Math.cos(angle) * (Math.random() * resetRadius);
+                    starY = Math.sin(angle) * (Math.random() * resetRadius); 
+                }
+                
+                // ** PERFORMANCE IMPROVEMENT: Store the new CENTER-RELATIVE physics position in the JS object **
+                star.x = starX;
+                star.y = starY;
+
+                // --- 3. Final Transform Application (Combined Drift + Parallax) ---
+                
+                // Parallax component (scaled by depth)
+                const parallaxX_D = parallaxOffsetX / star.depth;
+                const parallaxY_D = parallaxOffsetY / star.depth;
+
+                // Total Translation = (Center-Relative Physics Position + halfWidth) + Parallax Shift
+                const totalX = starX + halfWidth + parallaxX_D;
+                const totalY = starY + halfHeight + parallaxY_D;
+
+                // Apply the final translation in one GPU-accelerated step
+                star.element.style.transform = `translate(${totalX}px, ${totalY}px)`;
+            });
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        
+        // --- 5. Audio Control and Toggle Behavior ---
+
+        function toggleAudio() {
+            if (ambientAudio.paused) {
+                // Handle play promise
+                ambientAudio.play().then(() => {
+                    splashIcon.classList.remove('fa-volume-mute');
+                    splashIcon.classList.add('fa-volume-up');
+                }).catch(e => {
+                    // Fallback visual update if play is blocked again
+                    console.error("Audio playback failed on toggle:", e);
+                    splashIcon.classList.remove('fa-volume-up');
+                    splashIcon.classList.add('fa-volume-mute');
+                });
+            } else {
+                ambientAudio.pause();
+                splashIcon.classList.remove('fa-volume-up');
+                splashIcon.classList.add('fa-volume-mute');
+            }
+        }
+
+        function startExperience() {
+            const splashScreen = document.getElementById('splash-screen');
+            
+            // Freeze the pulse animation
+            splashIcon.style.animation = 'none';
+
+            // Pin the current location so transition is smooth
+            const rect = splashIcon.getBoundingClientRect();
+            splashIcon.style.position = 'fixed';
+            splashIcon.style.top = `${rect.top}px`; 
+            splashIcon.style.left = `${rect.left}px`; 
+            splashIcon.style.bottom = 'auto';
+            splashIcon.style.right = 'auto';
+
+            // PHASE 1: Start the icon's CSS movement and begin non-physics star effects (50ms delay)
+            setTimeout(() => {
+                // Calculate target position and scale for the corner icon
+                const targetScale = 0.3;
+                // Use offsetWidth/Height if available, fall back to a reasonable guess
+                const iconBaseSize = splashIcon.offsetWidth || 96; 
+                const MARGIN = 64; 
+                
+                const targetTop = window.innerHeight - (iconBaseSize * targetScale) - MARGIN; 
+                const targetLeft = window.innerWidth - (iconBaseSize * targetScale) - MARGIN;
+
+                // Apply corner position and scale transformation (triggers 3s CSS transition)
+                splashIcon.style.top = `${targetTop}px`; 
+                splashIcon.style.left = `${targetLeft}px`; 
+                splashIcon.style.transform = `translate(0, 0) scale(${targetScale})`; 
+                
+                // Set subtle opacity and hover class
+                splashIcon.style.opacity = '0.2'; 
+                splashIcon.classList.add('corner-toggle-hover');
+
+                // Start star generation and non-physics effects (breathing/twinkle) immediately
+                createStars(); 
+                applyStarEffects();
+                
+                // Fade out the splash screen (2.5s CSS transition)
+                splashScreen.style.opacity = '0'; 
+                
+            }, 50); 
+            
+            // Attempt to play audio immediately
+            ambientAudio.play().then(() => {
+                isAudioPlaying = true;
+            }).catch(e => {
+                console.error("Audio playback failed (Autoplay restrictions):", e);
+            });
+            
+            // PHASE 2: Start Physics Loop (Drift + Parallax) and cleanup (after icon transition finishes)
+            setTimeout(() => {
+                // Start the Parallax listener and the Game Loop for movement
+                window.addEventListener('mousemove', handleParallax);
+                // Start the high framerate physics loop here!
+                animationFrameId = requestAnimationFrame(gameLoop); 
+
+                // Clean up splash screen and update icon listener
+                splashScreen.style.display = 'none'; 
+                splashIcon.removeEventListener('click', startExperience);
+                splashIcon.addEventListener('click', toggleAudio);
+            }, TRANSITION_TIME + POST_TRANSITION_DELAY); // ~3250ms delay
+        }
+
+        // --- Initialization ---
+        window.onload = function () {
+            // Initial call to generate stars immediately so the transition doesn't look empty
+            createStars();
+            // Set up the listener to start the full experience
+            document.getElementById('splash-icon').addEventListener('click', startExperience, { once: true });
+        };
+        
+        // --- Responsive Handling ---
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Cancel existing loop to prevent layout shifts
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                    lastTime = 0;
+                }
+                
+                createStars(); // Recreate stars on resize to match density
+                
+                // If the experience has already started (splash screen hidden), restart the game loop
+                if (document.getElementById('splash-screen').style.opacity === '0') {
+                    animationFrameId = requestAnimationFrame(gameLoop);
+                }
+            }, 250); 
+        });
+
+    </script>
 </body>
 </html>
