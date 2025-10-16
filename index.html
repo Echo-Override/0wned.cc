@@ -134,7 +134,7 @@
         
         const MAX_STANDARD_OPACITY = 0.20; 
 
-        // RE-INTRODUCED: Subtle outward drift speed
+        // Subtle outward drift speed applied to ALL stars (Keeps the field moving)
         const DRIFT_SPEED = 0.005; 
         
         const TWINKLE_INTERVAL = 150; 
@@ -143,6 +143,10 @@
         
         const FLIGHT_CHANCE = 0.005; 
         const SHOOTING_STAR_DURATION = 2000; 
+        
+        // NEW: Slower flight speed for a drift-like movement
+        const FLIGHT_SPEED_FACTOR = 0.08; 
+        
         const FLIGHT_FADE_DURATION = 600; 
         const TRAIL_HISTORY_LENGTH = 8; 
 
@@ -239,7 +243,8 @@
                     color: color,
                     flightStart: 0,
                     flightDuration: 0,
-                    flightVecX: 0,
+                    // Vector is now a normalized direction (magnitude 1)
+                    flightVecX: 0, 
                     flightVecY: 0,
                     flightFadeStart: 0, 
                     spawnTime: initialSpawnTime, 
@@ -297,9 +302,9 @@
                         flyingStar.flightFadeStart = 0; 
 
                         const angle = Math.random() * 2 * Math.PI;
-                        const speed = Math.random() * 0.15 + 0.15; 
-                        flyingStar.flightVecX = Math.cos(angle) * speed;
-                        flyingStar.flightVecY = Math.sin(angle) * speed;
+                        // Calculate normalized direction vector (magnitude 1)
+                        flyingStar.flightVecX = Math.cos(angle); 
+                        flyingStar.flightVecY = Math.sin(angle);
                     }
                 }
             }
@@ -461,7 +466,8 @@
                 
                 const depthFactor = (4 - star.depth); 
                 
-                // --- OUTWARD DRIFT CALCULATION (RE-INTRODUCED) ---
+                // --- OUTWARD DRIFT CALCULATION (APPLIED TO ALL STARS) ---
+                // This is the base movement that gives the field its subtle expansion.
                 const dirX = starX; 
                 const dirY = starY; 
                 const distance = Math.sqrt(dirX * dirX + dirY * dirY);
@@ -477,9 +483,12 @@
 
                 // --- Shooting Star Flight Logic ---
                 if (star.isFlying) {
-                    
-                    starX += star.flightVecX * deltaTime;
-                    starY += star.flightVecY * deltaTime;
+                    // Flight is now slower and uses the flight vector (direction)
+                    // combined with the new, controlled speed factor and deltaTime.
+                    // Since the base drift is applied above, the resulting movement 
+                    // is a combination of the direct flight path and the outward radial pull.
+                    starX += star.flightVecX * FLIGHT_SPEED_FACTOR * deltaTime;
+                    starY += star.flightVecY * FLIGHT_SPEED_FACTOR * deltaTime;
 
                     star.trailHistory.push({ x: starX, y: starY, time: currentTime });
                     if (star.trailHistory.length > TRAIL_HISTORY_LENGTH) {
