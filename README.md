@@ -1,2 +1,2 @@
 # 0wned.cc
-The Greatest Website In The World
+Just a place for myself to have fun with web pages and such.
