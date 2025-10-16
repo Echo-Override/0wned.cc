@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silhouette of Reverie (Enhanced Starfield)</title>
+    <title>Silhouette of Reverie</title>
     <!-- Load Tailwind CSS for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Font Awesome for the speaker icon -->
@@ -134,13 +134,18 @@
         
         const MAX_STANDARD_OPACITY = 0.20; 
 
-        const DRIFT_SPEED = 0.0015; 
+        // RE-INTRODUCED: Subtle outward drift speed
+        const DRIFT_SPEED = 0.005; 
+        
         const TWINKLE_INTERVAL = 150; 
         const FLASH_CHANCE = 0.01; 
-        const SMOOTH_FLASH_DURATION = 800; // 800ms for a gentle pulse
+        const SMOOTH_FLASH_DURATION = 800; 
         
         const FLIGHT_CHANCE = 0.005; 
-        
+        const SHOOTING_STAR_DURATION = 2000; 
+        const FLIGHT_FADE_DURATION = 600; 
+        const TRAIL_HISTORY_LENGTH = 8; 
+
         const TRANSITION_TIME = 2800; 
         const POST_TRANSITION_DELAY = 100; 
         
@@ -148,8 +153,9 @@
         
         const FADE_IN_DURATION = 3000; 
         const STAR_RESPAWN_FADE_DURATION = 1500; 
-        const SHOOTING_STAR_DURATION = 2000; 
-        const TRAIL_HISTORY_LENGTH = 8; 
+        
+        // Starflight Focus: Ensure shooting stars start from the central 70% of the screen
+        const STARFLIGHT_CENTRAL_ZONE_RATIO = 0.7; 
 
         // --- Global Elements and State ---
         const canvas = document.getElementById('star-canvas');
@@ -195,14 +201,23 @@
             
             const initialSpawnTime = 0; 
             
+            // Determine the maximum extent of the starfield from the center
+            const maxRadius = Math.max(halfWidth, halfHeight) * 1.1; 
+            
             for (let i = 0; i < starCount; i++) {
                 const isBreathing = i < counts.breathingStarsCount;
                 
                 const baseSize = isBreathing ? (Math.random() * 2.0 + 1.5) : (Math.random() * 0.5 + 0.5); 
                 const depth = Math.floor(Math.random() * 3) + 1; 
                 
-                const initialStarPhysicsX = (Math.random() * window.innerWidth) - halfWidth;
-                const initialStarPhysicsY = (Math.random() * window.innerHeight) - halfHeight;
+                // --- Uniform Star Placement (Polar Coordinates) ---
+                const angle = Math.random() * 2 * Math.PI; // Random angle [0, 2π]
+                // To achieve uniform area distribution, the radius must be sqrt(random)
+                const radius = Math.sqrt(Math.random()) * maxRadius; 
+
+                const initialStarPhysicsX = Math.cos(angle) * radius;
+                const initialStarPhysicsY = Math.sin(angle) * radius;
+                // --------------------------------------------------
                 
                 const tintRoll = Math.random();
                 let color = '#ffffff';
@@ -226,8 +241,9 @@
                     flightDuration: 0,
                     flightVecX: 0,
                     flightVecY: 0,
+                    flightFadeStart: 0, 
                     spawnTime: initialSpawnTime, 
-                    flashStart: 0, // NEW: Timestamp when smooth flash starts
+                    flashStart: 0,
                     trailHistory: [] 
                 };
                 starObjects.push(starData);
@@ -251,21 +267,34 @@
 
                     // Smooth Flash (start the flash sequence)
                     if (Math.random() < FLASH_CHANCE) {
-                        // Only start a flash if one isn't already running
                         if (star.flashStart === 0) { 
                             star.flashStart = currentTime; 
                         }
                     }
                 }
 
-                // Star Flight Logic (remains unchanged)
+                // Star Flight Logic 
                 if (Math.random() < FLIGHT_CHANCE) {
-                    const flyingStar = starObjects[Math.floor(Math.random() * starObjects.length)];
+                    const halfWidth = canvas.width / 2;
+                    const halfHeight = canvas.height / 2;
+                    const centralXLimit = halfWidth * STARFLIGHT_CENTRAL_ZONE_RATIO;
+                    const centralYLimit = halfHeight * STARFLIGHT_CENTRAL_ZONE_RATIO;
                     
-                    if (!flyingStar.isFlying) { 
+                    // Filter stars that are not flying AND are within the central zone (70%)
+                    const potentialStars = starObjects.filter(s => 
+                        !s.isFlying && 
+                        Math.abs(s.x) < centralXLimit && 
+                        Math.abs(s.y) < centralYLimit
+                    );
+
+                    if (potentialStars.length > 0) { 
+                        // Pick a random star from the central pool
+                        const flyingStar = potentialStars[Math.floor(Math.random() * potentialStars.length)];
+                        
                         flyingStar.isFlying = true; 
                         flyingStar.flightStart = currentTime;
                         flyingStar.flightDuration = SHOOTING_STAR_DURATION; 
+                        flyingStar.flightFadeStart = 0; 
 
                         const angle = Math.random() * 2 * Math.PI;
                         const speed = Math.random() * 0.15 + 0.15; 
@@ -309,6 +338,18 @@
 
             for (const star of starObjects) {
                 
+                // --- Shooting Star Fade Calculation ---
+                let flightFadeAlpha = 1.0;
+                if (star.isFlying && star.flightFadeStart > 0) {
+                    const elapsedFade = currentTime - star.flightFadeStart;
+                    const fadeProgress = Math.min(1.0, elapsedFade / FLIGHT_FADE_DURATION);
+                    flightFadeAlpha = 1.0 - fadeProgress;
+                }
+                
+                // If the star is flying but completely faded out, skip drawing and let gameLoop handle reset
+                if (star.isFlying && flightFadeAlpha <= 0) continue;
+
+
                 // --- Parallax Calculation ---
                 const parallaxX_D = parallaxOffsetX / star.depth;
                 const parallaxY_D = parallaxOffsetY / star.depth;
@@ -319,16 +360,17 @@
                 // --- Shooting Star Trail Rendering ---
                 if (star.isFlying && star.trailHistory.length > 1) {
                     ctx.shadowBlur = 0; 
-                    const trailAlphaMultiplier = 0.5; 
+                    const trailAlphaMultiplier = 0.5 * flightFadeAlpha; 
                     
                     for (let i = star.trailHistory.length - 1; i >= 0; i--) {
                         const fragment = star.trailHistory[i];
                         
+                        // We use the same parallax offset for trail fragments for consistency
                         const fragScreenX = fragment.x + halfWidth + parallaxOffsetX / star.depth;
                         const fragScreenY = fragment.y + halfHeight + parallaxOffsetY / star.depth;
 
                         const fadeFactor = (i / star.trailHistory.length); 
-                        const fragmentSize = star.size * 0.8 * fadeFactor; 
+                        const fragmentSize = star.size * 0.8 * fadeFactor * flightFadeAlpha; 
 
                         ctx.fillStyle = star.color.replace('rgb', 'rgba').replace(')', `, ${trailAlphaMultiplier * fadeFactor})`);
                         
@@ -340,12 +382,12 @@
 
                 // --- Draw the Star Head (if flying, draw brightly and large) ---
                 if (star.isFlying) {
-                    ctx.fillStyle = `rgba(255, 255, 255, 1.0)`;
-                    ctx.shadowBlur = 12; 
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flightFadeAlpha})`; 
+                    ctx.shadowBlur = 12 * flightFadeAlpha; 
                     ctx.shadowColor = 'rgba(255, 255, 255, 1.0)';
                     
                     ctx.beginPath();
-                    ctx.arc(Math.round(screenX), Math.round(screenY), star.size, 0, Math.PI * 2);
+                    ctx.arc(Math.round(screenX), Math.round(screenY), star.size * flightFadeAlpha, 0, Math.PI * 2); 
                     ctx.fill();
                     
                     continue; 
@@ -358,10 +400,8 @@
                     const progress = elapsedFlash / SMOOTH_FLASH_DURATION;
 
                     if (progress < 1.0) {
-                        // Use a smooth sine curve (0 -> 1 -> 0) for a pulsing effect
                         flashBoost = Math.sin(progress * Math.PI); 
                     } else {
-                        // Flash finished
                         star.flashStart = 0;
                     }
                 }
@@ -370,12 +410,11 @@
                 let finalAlpha = star.currentOpacity;
                 if (star.isBreathing) {
                     const breathRate = (star.depth * 500) + 5000;
-                    // Base breathing
                     finalAlpha = star.baseOpacity + (0.1 * Math.sin(currentTime / breathRate)); 
                 }
 
                 // Apply flash boost to opacity and size
-                const opacityBoost = flashBoost * 0.8; // Max 80% extra opacity
+                const opacityBoost = flashBoost * 0.8; 
                 finalAlpha = Math.min(1.0, finalAlpha + opacityBoost);
                 
                 // --- Individual Star Respawn Fade-In Logic ---
@@ -387,11 +426,9 @@
                     starFadeMultiplier = Math.pow(progress, 2); 
                 }
                 
-                // Apply final opacity and shadow settings
                 finalAlpha *= starFadeMultiplier;
 
-                // Use flashBoost for size increase
-                const sizeBoost = flashBoost * 1.5; // Up to 1.5 pixels extra size at peak
+                const sizeBoost = flashBoost * 1.5; 
                 const currentSize = star.size + sizeBoost; 
 
                 ctx.fillStyle = star.color.replace('rgb', 'rgba').replace(')', `, ${finalAlpha})`);
@@ -424,7 +461,7 @@
                 
                 const depthFactor = (4 - star.depth); 
                 
-                // --- Drift Calculation (Outward Movement) ---
+                // --- OUTWARD DRIFT CALCULATION (RE-INTRODUCED) ---
                 const dirX = starX; 
                 const dirY = starY; 
                 const distance = Math.sqrt(dirX * dirX + dirY * dirY);
@@ -435,51 +472,53 @@
                 
                 starX += normX * driftAmount;
                 starY += normY * driftAmount;
+                // --------------------------------------------------
+
 
                 // --- Shooting Star Flight Logic ---
                 if (star.isFlying) {
+                    
                     starX += star.flightVecX * deltaTime;
                     starY += star.flightVecY * deltaTime;
 
-                    // Add current position to trail history
                     star.trailHistory.push({ x: starX, y: starY, time: currentTime });
                     if (star.trailHistory.length > TRAIL_HISTORY_LENGTH) {
                         star.trailHistory.shift(); 
                     }
                     
-                    // Check if flight duration is over
-                    if (currentTime > star.flightStart + star.flightDuration) {
+                    // Phase 1: Check if main flight duration is over and START fade
+                    if (star.flightFadeStart === 0 && currentTime > star.flightStart + star.flightDuration) {
+                        star.flightFadeStart = currentTime; 
+                    }
+                    
+                    // Phase 2: Check if fade duration is over (after fade start)
+                    if (star.flightFadeStart > 0 && currentTime > star.flightFadeStart + FLIGHT_FADE_DURATION) {
+                         // Reset the star to its default state
                          star.isFlying = false;
-                         star.trailHistory = []; // Clear the trail
+                         star.trailHistory = []; 
+                         star.flightFadeStart = 0; 
                     }
 
                 } else {
                     if(star.trailHistory.length > 0) star.trailHistory = [];
                 }
 
-                // --- Wrapping Logic (Full-Screen Random Spawn) ---
+                // --- Wrapping Logic (Respawn with Fade-In) ---
                 if (Math.abs(starX) > wrapXLimit || Math.abs(starY) > wrapYLimit) {
                     
                     star.spawnTime = currentTime; 
 
                     star.isFlying = false; 
                     star.trailHistory = [];
+                    star.flightFadeStart = 0; 
 
-                    const side = Math.floor(Math.random() * 4); 
+                    // Respawn star at a completely random position (center-favoring)
+                    const maxRadius = Math.max(wrapXLimit, wrapYLimit);
+                    const angle = Math.random() * 2 * Math.PI; 
+                    const radius = Math.sqrt(Math.random()) * maxRadius; 
                     
-                    if (side === 0) { // Top
-                        starX = (Math.random() * wrapXLimit * 2) - wrapXLimit; 
-                        starY = -wrapYLimit;
-                    } else if (side === 1) { // Right
-                        starX = wrapXLimit; 
-                        starY = (Math.random() * wrapYLimit * 2) - wrapYLimit; 
-                    } else if (side === 2) { // Bottom
-                        starX = (Math.random() * wrapXLimit * 2) - wrapXLimit;
-                        starY = wrapYLimit;
-                    } else { // Left
-                        starX = -wrapXLimit;
-                        starY = (Math.random() * wrapYLimit * 2) - wrapYLimit;
-                    }
+                    starX = Math.cos(angle) * radius;
+                    starY = Math.sin(angle) * radius;
                 }
                 
                 star.x = starX;
